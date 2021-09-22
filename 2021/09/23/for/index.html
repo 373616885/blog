@@ -6,15 +6,17 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="https://373616885.github.io/blog">
-  <title>Archives: 2021 | 373616885</title>
+  <title>错误的优化原则-避免在循环体中创建对象 | 373616885</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="373616885">
-<meta property="og:type" content="website">
-<meta property="og:title" content="373616885">
-<meta property="og:url" content="https://373616885.github.io/blog/archives/2021/index.html">
+  <meta name="description" content="for 循环创建对象 变量声明在循环体内更好">
+<meta property="og:type" content="article">
+<meta property="og:title" content="错误的优化原则-避免在循环体中创建对象">
+<meta property="og:url" content="https://373616885.github.io/blog/2021/09/23/for/index.html">
 <meta property="og:site_name" content="373616885">
-<meta property="og:description" content="373616885">
+<meta property="og:description" content="for 循环创建对象 变量声明在循环体内更好">
 <meta property="og:locale">
+<meta property="article:published_time" content="2021-09-22T17:30:43.219Z">
+<meta property="article:modified_time" content="2021-09-22T17:33:19.514Z">
 <meta property="article:author" content="qinjp">
 <meta name="twitter:card" content="summary">
   
@@ -132,130 +134,164 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            
+            <article id="post-for" class="article article-type-post " itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
   
+    <h1 class="article-title" itemprop="name">
+      错误的优化原则-避免在循环体中创建对象
+    </h1>
   
-    
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/blog/archives/2021" class="archive-year">2021</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/blog/2021/09/23/for/" class="archive-article-date">
+
+        
+        <a href="/blog/2021/09/23/for/" class="archive-article-date">
   	<time datetime="2021-09-22T17:30:43.219Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-09-23</time>
 </a>
-        </div>
-    	 
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/blog/2021/09/23/for/">错误的优化原则-避免在循环体中创建对象</a>
-    </h1>
-  
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>for 循环创建对象 变量声明在循环体内更好</p>
+<span id="more"></span>
 
-        <div class="article-info info-on-right">
-          
-          
+<h3 id="Java优化编程的法则有一条"><a href="#Java优化编程的法则有一条" class="headerlink" title="Java优化编程的法则有一条"></a><strong>Java优化编程的法则有一条</strong></h3><blockquote>
+<p>避免在循环体中创建对象,即使该对象占用内存空间不大</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10000</span>; ++i) &#123;</span><br><span class="line">  Object obj = <span class="keyword">new</span> Object();</span><br><span class="line">  System.out.println(<span class="string">&quot;obj= &quot;</span>+ obj);</span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
 
-        </div>
-        <div class="clearfix"></div>
-    </header>
+<blockquote>
+<p>应该改成</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Object obj = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10000</span>; ++i) &#123;</span><br><span class="line">  obj = <span class="keyword">new</span> Object();</span><br><span class="line">  System.out.println(<span class="string">&quot;obj= &quot;</span>+ obj);</span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="上面的优化原则是错误的"><a href="#上面的优化原则是错误的" class="headerlink" title="上面的优化原则是错误的"></a><strong>上面的优化原则是错误的</strong></h3><p><strong>循环外申明变量不但效率不会变高，在循环外申明变量，内存占用会更大！不但没有正面作用，反而有负面作用！</strong></p>
+<p>原因：</p>
+<ol>
+<li>将变量声明在循环体外的方式没能能节省点空间，反而多了3 bit（多了一行代码导致偏移量增加，还有定义的Slot 不能复用，循环体外作用域还在不能复用，循环体内作用域已经结束，可以复用里面的Slot ）</li>
+<li>声明在循环体外部的变量，人为地将其的声明周期拉长了，数据有可能被自己不小心破坏了，隐性的bug增加，还有可能对其他变量命名带来冲突</li>
+<li>增强for循环是循环体内声明变量的方式–官方推荐的遍历方式，为什么官方要推崇这种方式，不解释，jdk源码都是写在循环体内的，官方都这样写了，我们还需要纠结什么呢</li>
+</ol>
+<h3 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a><strong>测试代码</strong></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VariableInsideOutsideLoopTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">outsideLoop</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Object o;</span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span> (++i &lt; <span class="number">100</span>) &#123;</span><br><span class="line">            o = <span class="keyword">new</span> Object();</span><br><span class="line">            o.toString();</span><br><span class="line">        &#125;</span><br><span class="line">        Object b = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">intsideLoop</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span> (++i &lt; <span class="number">100</span>) &#123;</span><br><span class="line">            Object o = <span class="keyword">new</span> Object();</span><br><span class="line">            o.toString();</span><br><span class="line">        &#125;</span><br><span class="line">        Object b = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>上面的代码编译成class，反编译出来的样子是这样的</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VariableInsideOutsideLoopTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">VariableInsideOutsideLoopTest</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">outsideLoop</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span>(<span class="keyword">true</span>) &#123;</span><br><span class="line">            ++i;</span><br><span class="line">            <span class="keyword">if</span>(i &gt;= <span class="number">100</span>) &#123;</span><br><span class="line">                Object b = <span class="number">1</span>;</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            Object o = <span class="keyword">new</span> Object();</span><br><span class="line">            o.toString();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">intsideLoop</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span>(<span class="keyword">true</span>) &#123;</span><br><span class="line">            ++i;</span><br><span class="line">            <span class="keyword">if</span>(i &gt;= <span class="number">100</span>) &#123;</span><br><span class="line">                Object b = <span class="number">1</span>;</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            Object o = <span class="keyword">new</span> Object();</span><br><span class="line">            o.toString();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>反编译出来的代码一模一样！！结论不言而喻</strong></p>
+<h3 id="内存比较"><a href="#内存比较" class="headerlink" title="内存比较"></a><strong>内存比较</strong></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">jdk <span class="number">11</span>  vm参数</span><br><span class="line">-Xlog:gc*    </span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Loop</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">loop</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Object o;</span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span> (++i &lt; <span class="number">100</span>) &#123;</span><br><span class="line">            o = <span class="keyword">new</span> Object();</span><br><span class="line">            o.toString();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;    </span><br><span class="line">循环体外：</span><br><span class="line">[<span class="number">0.</span>012s][info][gc,heap] Heap region size: 1M</span><br><span class="line">[<span class="number">0.</span>016s][info][gc     ] Using G1</span><br><span class="line">[<span class="number">0.</span>016s][info][gc,heap,coops] Heap address: <span class="number">0x0000000701000000</span>, size: <span class="number">4080</span> MB, Compressed Oops mode: Zero based, Oop shift amount: <span class="number">3</span></span><br><span class="line">[<span class="number">0.</span>193s][info][gc,heap,exit ] Heap</span><br><span class="line">[<span class="number">0.</span>194s][info][gc,heap,exit ]  garbage-first heap   total 262144K, used 6144K [<span class="number">0x0000000701000000</span>, <span class="number">0x0000000800000000</span>)</span><br><span class="line">[<span class="number">0.</span>194s][info][gc,heap,exit ]   region size 1024K, <span class="number">8</span> young (8192K), <span class="number">0</span> survivors (0K)</span><br><span class="line">[<span class="number">0.</span>194s][info][gc,heap,exit ]  Metaspace       used 6476K, capacity 6511K, committed 6784K, reserved 1056768K</span><br><span class="line">[<span class="number">0.</span>194s][info][gc,heap,exit ]   <span class="class"><span class="keyword">class</span> <span class="title">space</span>    <span class="title">used</span> 556<span class="title">K</span>, <span class="title">capacity</span> 570<span class="title">K</span>, <span class="title">committed</span> 640<span class="title">K</span>, <span class="title">reserved</span> 1048576<span class="title">K</span>    </span></span><br><span class="line"><span class="class"><span class="title">public</span> <span class="title">class</span> <span class="title">Loop</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">loop</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span> (++i &lt; <span class="number">100</span>) &#123;</span><br><span class="line">            Object o = <span class="keyword">new</span> Object();</span><br><span class="line">            o.toString();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">循环体内</span><br><span class="line">[<span class="number">0.</span>012s][info][gc,heap] Heap region size: 1M</span><br><span class="line">[<span class="number">0.</span>016s][info][gc     ] Using G1</span><br><span class="line">[<span class="number">0.</span>016s][info][gc,heap,coops] Heap address: <span class="number">0x0000000701000000</span>, size: <span class="number">4080</span> MB, Compressed Oops mode: Zero based, Oop shift amount: <span class="number">3</span></span><br><span class="line">[<span class="number">0.</span>193s][info][gc,heap,exit ] Heap</span><br><span class="line">[<span class="number">0.</span>193s][info][gc,heap,exit ]  garbage-first heap   total 262144K, used 6144K [<span class="number">0x0000000701000000</span>, <span class="number">0x0000000800000000</span>)</span><br><span class="line">[<span class="number">0.</span>193s][info][gc,heap,exit ]   region size 1024K, <span class="number">8</span> young (8192K), <span class="number">0</span> survivors (0K)</span><br><span class="line">[<span class="number">0.</span>193s][info][gc,heap,exit ]  Metaspace       used 6466K, capacity 6511K, committed 6784K, reserved 1056768K</span><br><span class="line">[<span class="number">0.</span>193s][info][gc,heap,exit ]   <span class="class"><span class="keyword">class</span> <span class="title">space</span>    <span class="title">used</span> 555<span class="title">K</span>, <span class="title">capacity</span> 570<span class="title">K</span>, <span class="title">committed</span> 640<span class="title">K</span>, <span class="title">reserved</span> 1048576<span class="title">K</span>                                            </span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>区别</strong></p>
+<p><strong>注意：类名和方法名要一致，不然会出现一些差异</strong></p>
+<p>class space 循环体外比循环体内多了 1K   （循环体外 多了一行代码）</p>
+<p>Metaspace 方法区： 循环体外比循环体内多了 10K  </p>
+<p>原因：循环体外和循环体内  o 这个变量 都用到了一个Slot ( 数组下标) （多了一行代码导致偏移量增加）</p>
+<p>但 循环体外 作用域 [ 20, 20 + 8]  （[Start,Start+Length]）偏移量 + 长度</p>
+<p>循环体内 作用域 [ 20, 20 + 5]  （[Start,Start+Length]）偏移量 + 长度</p>
+<p>总结：都申请了一个Slot的空间（使用的空间一样）—循环体外多了一行代码导致导致偏移量增加–class内存增加</p>
+<p>这影响很小，Metaspace 多了一点，但实际heap中还是用了一个Slot的空间</p>
+<p><strong>用 javap 寻找原因（个人猜测）</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br></pre></td><td class="code"><pre><span class="line">javac -g:vars Loop.java</span><br><span class="line">javap -v Loop   </span><br><span class="line">    </span><br><span class="line"> <span class="comment">/**</span></span><br><span class="line"><span class="comment">  * 循环体内</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Loop</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">inp</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span> (++i &lt; <span class="number">1000</span>) &#123;</span><br><span class="line">            Object o = <span class="keyword">new</span> Object();</span><br><span class="line">            o.toString();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">inp</span><span class="params">()</span></span>;</span><br><span class="line">    descriptor: ()V</span><br><span class="line">    flags: (<span class="number">0x0001</span>) ACC_PUBLIC</span><br><span class="line">    Code:</span><br><span class="line">      stack=<span class="number">2</span>, locals=<span class="number">3</span>, args_size=<span class="number">1</span></span><br><span class="line">         <span class="number">0</span>: iconst_0</span><br><span class="line">         <span class="number">1</span>: istore_1</span><br><span class="line">         <span class="number">2</span>: iinc          <span class="number">1</span>, <span class="number">1</span></span><br><span class="line">         <span class="number">5</span>: iload_1</span><br><span class="line">         <span class="number">6</span>: sipush        <span class="number">1000</span></span><br><span class="line">         <span class="number">9</span>: if_icmpge     <span class="number">28</span></span><br><span class="line">        <span class="number">12</span>: <span class="keyword">new</span>           #<span class="number">2</span>                  <span class="comment">// class java/lang/Object</span></span><br><span class="line">        <span class="number">15</span>: dup</span><br><span class="line">        <span class="number">16</span>: invokespecial #<span class="number">1</span>                  <span class="comment">// Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V</span></span><br><span class="line">        <span class="number">19</span>: astore_2</span><br><span class="line">        <span class="number">20</span>: aload_2</span><br><span class="line">        <span class="number">21</span>: invokevirtual #<span class="number">3</span>                  <span class="comment">// Method java/lang/Object.toString:()Ljava/lang/String;</span></span><br><span class="line">        <span class="number">24</span>: pop</span><br><span class="line">        <span class="number">25</span>: goto          <span class="number">2</span></span><br><span class="line">        <span class="number">28</span>: <span class="keyword">return</span></span><br><span class="line">      LocalVariableTable:</span><br><span class="line">        Start  Length  Slot  Name   Signature</span><br><span class="line">           <span class="number">20</span>       <span class="number">5</span>     <span class="number">2</span>     o   Ljava/lang/Object;</span><br><span class="line">            <span class="number">0</span>      <span class="number">29</span>     <span class="number">0</span>  <span class="keyword">this</span>   Lcom/example/demo/test/Loop;</span><br><span class="line">            <span class="number">2</span>      <span class="number">27</span>     <span class="number">1</span>     i   I</span><br><span class="line">      StackMapTable: number_of_entries = <span class="number">2</span></span><br><span class="line">        frame_type = <span class="number">252</span> <span class="comment">/* append */</span></span><br><span class="line">          offset_delta = <span class="number">2</span></span><br><span class="line">          locals = [ <span class="keyword">int</span> ]</span><br><span class="line">        frame_type = <span class="number">25</span> <span class="comment">/* same */</span></span><br><span class="line"></span><br><span class="line"> <span class="comment">/**</span></span><br><span class="line"><span class="comment">  * 循环体外</span></span><br><span class="line"><span class="comment">  */</span>   </span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Loop</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">out</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Object o;</span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span> (++i &lt; <span class="number">1000</span>) &#123;</span><br><span class="line">            o = <span class="keyword">new</span> Object();</span><br><span class="line">            o.toString();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;           </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">out</span><span class="params">()</span></span>;</span><br><span class="line">    descriptor: ()V</span><br><span class="line">    flags: (<span class="number">0x0001</span>) ACC_PUBLIC</span><br><span class="line">    Code:</span><br><span class="line">      stack=<span class="number">2</span>, locals=<span class="number">3</span>, args_size=<span class="number">1</span></span><br><span class="line">         <span class="number">0</span>: iconst_0</span><br><span class="line">         <span class="number">1</span>: istore_2</span><br><span class="line">         <span class="number">2</span>: iinc          <span class="number">2</span>, <span class="number">1</span></span><br><span class="line">         <span class="number">5</span>: iload_2</span><br><span class="line">         <span class="number">6</span>: sipush        <span class="number">1000</span></span><br><span class="line">         <span class="number">9</span>: if_icmpge     <span class="number">28</span></span><br><span class="line">        <span class="number">12</span>: <span class="keyword">new</span>           #<span class="number">2</span>                  <span class="comment">// class java/lang/Object</span></span><br><span class="line">        <span class="number">15</span>: dup</span><br><span class="line">        <span class="number">16</span>: invokespecial #<span class="number">1</span>                  <span class="comment">// Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V</span></span><br><span class="line">        <span class="number">19</span>: astore_1</span><br><span class="line">        <span class="number">20</span>: aload_1</span><br><span class="line">        <span class="number">21</span>: invokevirtual #<span class="number">3</span>                  <span class="comment">// Method java/lang/Object.toString:()Ljava/lang/String;</span></span><br><span class="line">        <span class="number">24</span>: pop</span><br><span class="line">        <span class="number">25</span>: goto          <span class="number">2</span></span><br><span class="line">        <span class="number">28</span>: <span class="keyword">return</span></span><br><span class="line">      LocalVariableTable:</span><br><span class="line">        Start  Length  Slot  Name   Signature</span><br><span class="line">           <span class="number">20</span>       <span class="number">8</span>     <span class="number">1</span>     o   Ljava/lang/Object;</span><br><span class="line">            <span class="number">0</span>      <span class="number">29</span>     <span class="number">0</span>  <span class="keyword">this</span>   Lcom/example/demo/test/Loop;</span><br><span class="line">            <span class="number">2</span>      <span class="number">27</span>     <span class="number">2</span>     i   I</span><br><span class="line">      StackMapTable: number_of_entries = <span class="number">2</span></span><br><span class="line">        frame_type = <span class="number">253</span> <span class="comment">/* append */</span></span><br><span class="line">          offset_delta = <span class="number">2</span></span><br><span class="line">          locals = [ top, <span class="keyword">int</span> ]</span><br><span class="line">        frame_type = <span class="number">25</span> <span class="comment">/* same */</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>首先都用了一个Slot (4字节–4 * 8 bit =32位   1 byte = 8 bit)</p>
+<p>循环体外  o  用了一个Slot里的 8 Length</p>
+<p>循环体内  o  用了一个Slot里的 5 Length</p>
+<p>这 o 变量的作用域少了3 Length</p>
+<p>循环一次少移动3 bit ，1亿次少移动35M的空间</p>
+<h3 id="slot复用导致可能导致内存进一步减少"><a href="#slot复用导致可能导致内存进一步减少" class="headerlink" title="slot复用导致可能导致内存进一步减少"></a>slot复用导致可能导致内存进一步减少</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> qinjp</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2021/8/4</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">outsideLoop</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Object o;</span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span> (++i &lt; <span class="number">100</span>) &#123;</span><br><span class="line">            o = <span class="keyword">new</span> Object();</span><br><span class="line">            o.toString();</span><br><span class="line">        &#125;</span><br><span class="line">        Object b = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">intsideLoop</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span> (++i &lt; <span class="number">100</span>) &#123;</span><br><span class="line">            Object o = <span class="keyword">new</span> Object();</span><br><span class="line">            o.toString();</span><br><span class="line">        &#125;</span><br><span class="line">        Object b = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line">javac -g:vars Test.java</span><br><span class="line">javap -<span class="function">v Test   </span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title">outsideLoop</span><span class="params">()</span></span>;</span><br><span class="line">    descriptor: ()V</span><br><span class="line">    flags: (<span class="number">0x0001</span>) ACC_PUBLIC</span><br><span class="line">    Code:</span><br><span class="line">      stack=<span class="number">2</span>, locals=<span class="number">4</span>, args_size=<span class="number">1</span></span><br><span class="line">         <span class="number">0</span>: iconst_0</span><br><span class="line">         <span class="number">1</span>: istore_2</span><br><span class="line">         <span class="number">2</span>: iinc          <span class="number">2</span>, <span class="number">1</span></span><br><span class="line">         <span class="number">5</span>: iload_2</span><br><span class="line">         <span class="number">6</span>: bipush        <span class="number">100</span></span><br><span class="line">         <span class="number">8</span>: if_icmpge     <span class="number">27</span></span><br><span class="line">        <span class="number">11</span>: <span class="keyword">new</span>           #<span class="number">2</span>                  <span class="comment">// class java/lang/Object</span></span><br><span class="line">        <span class="number">14</span>: dup</span><br><span class="line">        <span class="number">15</span>: invokespecial #<span class="number">1</span>                  <span class="comment">// Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V</span></span><br><span class="line">        <span class="number">18</span>: astore_1</span><br><span class="line">        <span class="number">19</span>: aload_1</span><br><span class="line">        <span class="number">20</span>: invokevirtual #<span class="number">3</span>                  <span class="comment">// Method java/lang/Object.toString:()Ljava/lang/String;</span></span><br><span class="line">        <span class="number">23</span>: pop</span><br><span class="line">        <span class="number">24</span>: goto          <span class="number">2</span></span><br><span class="line">        <span class="number">27</span>: iconst_1</span><br><span class="line">        <span class="number">28</span>: invokestatic  #<span class="number">4</span>                  <span class="comment">// Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;</span></span><br><span class="line">        <span class="number">31</span>: astore_3</span><br><span class="line">        <span class="number">32</span>: <span class="keyword">return</span></span><br><span class="line">      LocalVariableTable:</span><br><span class="line">        Start  Length  Slot  Name   Signature</span><br><span class="line">           <span class="number">19</span>       <span class="number">8</span>     <span class="number">1</span>     o   Ljava/lang/Object;</span><br><span class="line">            <span class="number">0</span>      <span class="number">33</span>     <span class="number">0</span>  <span class="keyword">this</span>   Lcom/example/demo/Test;</span><br><span class="line">            <span class="number">2</span>      <span class="number">31</span>     <span class="number">2</span>     i   I</span><br><span class="line">           <span class="number">32</span>       <span class="number">1</span>     <span class="number">3</span>     b   Ljava/lang/Object;</span><br><span class="line">      StackMapTable: number_of_entries = <span class="number">2</span></span><br><span class="line">        frame_type = <span class="number">253</span> <span class="comment">/* append */</span></span><br><span class="line">          offset_delta = <span class="number">2</span></span><br><span class="line">          locals = [ top, <span class="keyword">int</span> ]</span><br><span class="line">        frame_type = <span class="number">24</span> <span class="comment">/* same */</span></span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">intsideLoop</span><span class="params">()</span></span>;</span><br><span class="line">    descriptor: ()V</span><br><span class="line">    flags: (<span class="number">0x0001</span>) ACC_PUBLIC</span><br><span class="line">    Code:</span><br><span class="line">      stack=<span class="number">2</span>, locals=<span class="number">3</span>, args_size=<span class="number">1</span></span><br><span class="line">         <span class="number">0</span>: iconst_0</span><br><span class="line">         <span class="number">1</span>: istore_1</span><br><span class="line">         <span class="number">2</span>: iinc          <span class="number">1</span>, <span class="number">1</span></span><br><span class="line">         <span class="number">5</span>: iload_1</span><br><span class="line">         <span class="number">6</span>: bipush        <span class="number">100</span></span><br><span class="line">         <span class="number">8</span>: if_icmpge     <span class="number">27</span></span><br><span class="line">        <span class="number">11</span>: <span class="keyword">new</span>           #<span class="number">2</span>                  <span class="comment">// class java/lang/Object</span></span><br><span class="line">        <span class="number">14</span>: dup</span><br><span class="line">        <span class="number">15</span>: invokespecial #<span class="number">1</span>                  <span class="comment">// Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V</span></span><br><span class="line">        <span class="number">18</span>: astore_2</span><br><span class="line">        <span class="number">19</span>: aload_2</span><br><span class="line">        <span class="number">20</span>: invokevirtual #<span class="number">3</span>                  <span class="comment">// Method java/lang/Object.toString:()Ljava/lang/String;</span></span><br><span class="line">        <span class="number">23</span>: pop</span><br><span class="line">        <span class="number">24</span>: goto          <span class="number">2</span></span><br><span class="line">        <span class="number">27</span>: iconst_1</span><br><span class="line">        <span class="number">28</span>: invokestatic  #<span class="number">4</span>                  <span class="comment">// Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;</span></span><br><span class="line">        <span class="number">31</span>: astore_2</span><br><span class="line">        <span class="number">32</span>: <span class="keyword">return</span></span><br><span class="line">      LocalVariableTable:</span><br><span class="line">        Start  Length  Slot  Name   Signature</span><br><span class="line">           <span class="number">19</span>       <span class="number">5</span>     <span class="number">2</span>     o   Ljava/lang/Object;</span><br><span class="line">            <span class="number">0</span>      <span class="number">33</span>     <span class="number">0</span>  <span class="keyword">this</span>   Lcom/example/demo/Test;</span><br><span class="line">            <span class="number">2</span>      <span class="number">31</span>     <span class="number">1</span>     i   I</span><br><span class="line">           <span class="number">32</span>       <span class="number">1</span>     <span class="number">2</span>     b   Ljava/lang/Object;</span><br><span class="line">      StackMapTable: number_of_entries = <span class="number">2</span></span><br><span class="line">        frame_type = <span class="number">252</span> <span class="comment">/* append */</span></span><br><span class="line">          offset_delta = <span class="number">2</span></span><br><span class="line">          locals = [ <span class="keyword">int</span> ]</span><br><span class="line">        frame_type = <span class="number">24</span> <span class="comment">/* same */</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>outsideLoop在stack frame中定义了4个slot, 而intsideLoop只定义了3个slot!!!</strong></p>
+<p><strong>outsideLoop中，变量o和b分别占用了不同的slot，在intsideLoop中，变量o和b复用一个slot</strong></p>
+<p><strong>outsideLoop的stack frame比intsideLoop多占用4个字节内存（一个slot占用4个字节）</strong></p>
+<p><strong>由于在intsideLoop中，o和b复用了同一个slot，所以，当b使用slot 2的时候，这是变量o已经“不复存在”，所以o原来引用的对象就没有任何引用，它有可能立即被GC回收（注意是有可能，不是一定），腾出所占用heap内存。</strong></p>
+<p><strong>intsideLoop存在可能，在某些时间点，使用的heap内存比outsideLoop少不少</strong></p>
+<p><strong>这个例子中少的内存微不足道，但是假设这个方法执行时间很长，o引用的对象是一个大对象时，还是有那么点意义。</strong></p>
+<h3 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h3><p> 变量声明在循环体内比循环体外更好</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
   </div>
 </article>
+
   
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/blog/2021/09/22/beanUtils/" class="archive-article-date">
-  	<time datetime="2021-09-22T14:07:03.730Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-09-22</time>
-</a>
+<nav id="article-nav">
+  
+  
+    <a href="/blog/2021/09/22/beanUtils/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">升级到Spring 5.3.x之后，使用BeanUtils 导致性能下降，GC次数急剧增加，性能急剧下降</div>
+      <i class="icon-circle-right"></i>
+    </a>
+  
+</nav>
+
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
         </div>
-    	 
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/blog/2021/09/22/beanUtils/">升级到Spring 5.3.x之后，使用BeanUtils 导致性能下降，GC次数急剧增加，性能急剧下降</a>
-    </h1>
-  
-
-        <div class="article-info info-on-right">
-          
-          
-
+        
+        
+        <div class="toc-container tooltip-left">
+            <i class="icon-font icon-category"></i>
+            <div class="tooltip tooltip-east">
+                <span class="tooltip-item">
+                </span>
+                <span class="tooltip-content">
+                    <div class="toc-article">
+                    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Java%E4%BC%98%E5%8C%96%E7%BC%96%E7%A8%8B%E7%9A%84%E6%B3%95%E5%88%99%E6%9C%89%E4%B8%80%E6%9D%A1"><span class="toc-number">1.</span> <span class="toc-text">Java优化编程的法则有一条</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8A%E9%9D%A2%E7%9A%84%E4%BC%98%E5%8C%96%E5%8E%9F%E5%88%99%E6%98%AF%E9%94%99%E8%AF%AF%E7%9A%84"><span class="toc-number">2.</span> <span class="toc-text">上面的优化原则是错误的</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E4%BB%A3%E7%A0%81"><span class="toc-number">3.</span> <span class="toc-text">测试代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E6%AF%94%E8%BE%83"><span class="toc-number">4.</span> <span class="toc-text">内存比较</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">5.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#slot%E5%A4%8D%E7%94%A8%E5%AF%BC%E8%87%B4%E5%8F%AF%E8%83%BD%E5%AF%BC%E8%87%B4%E5%86%85%E5%AD%98%E8%BF%9B%E4%B8%80%E6%AD%A5%E5%87%8F%E5%B0%91"><span class="toc-number">6.</span> <span class="toc-text">slot复用导致可能导致内存进一步减少</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93-1"><span class="toc-number">7.</span> <span class="toc-text">总结</span></a></li></ol>
+                    </div>
+                </span>
+            </div>
         </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
+        
+    </div>
+</aside>
+
+
+
   
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/blog/2021/09/22/jol-core/" class="archive-article-date">
-  	<time datetime="2021-09-21T17:37:24.650Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-09-22</time>
-</a>
-        </div>
-    	 
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/blog/2021/09/22/jol-core/">JOL：查看Java 对象布局、大小工具</a>
-    </h1>
   
 
-        <div class="article-info info-on-right">
-          
-          
-
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
-  
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/blog/2021/09/21/hexo/" class="archive-article-date">
-  	<time datetime="2021-09-21T15:56:32.576Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-09-21</time>
-</a>
-        </div>
-    	 
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/blog/2021/09/21/hexo/">hexo</a>
-    </h1>
   
 
-        <div class="article-info info-on-right">
-          
-          
-
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
-  
-  
-    </div></section>
   
 
-    
+  
 
 
           </div>
@@ -278,8 +314,8 @@
 	var yiliaConfig = {
 		mathjax: false,
 		isHome: false,
-		isPost: false,
-		isArchive: true,
+		isPost: true,
+		isArchive: false,
 		isTag: false,
 		isCategory: false,
 		open_in_new: false,

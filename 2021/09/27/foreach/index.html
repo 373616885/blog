@@ -6,17 +6,17 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="https://373616885.github.io/blog">
-  <title>循环嵌套使用原则 | 373616885</title>
+  <title>代码优化之对for循环嵌套的优化 | 373616885</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="循环嵌套使用原则外大内小">
+  <meta name="description" content="循环嵌套使用原则答：外大内小">
 <meta property="og:type" content="article">
-<meta property="og:title" content="循环嵌套使用原则">
+<meta property="og:title" content="代码优化之对for循环嵌套的优化">
 <meta property="og:url" content="https://373616885.github.io/blog/2021/09/27/foreach/index.html">
 <meta property="og:site_name" content="373616885">
-<meta property="og:description" content="循环嵌套使用原则外大内小">
+<meta property="og:description" content="循环嵌套使用原则答：外大内小">
 <meta property="og:locale">
 <meta property="article:published_time" content="2021-09-26T17:06:45.498Z">
-<meta property="article:modified_time" content="2021-09-26T17:07:22.884Z">
+<meta property="article:modified_time" content="2021-09-26T17:47:54.648Z">
 <meta property="article:author" content="qinjp">
 <meta name="twitter:card" content="summary">
   
@@ -141,7 +141,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      循环嵌套使用原则
+      代码优化之对for循环嵌套的优化
     </h1>
   
 
@@ -154,7 +154,15 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h3 id="循环嵌套使用原则"><a href="#循环嵌套使用原则" class="headerlink" title="循环嵌套使用原则"></a>循环嵌套使用原则</h3><p>外大内小</p>
+        <h3 id="循环嵌套使用原则"><a href="#循环嵌套使用原则" class="headerlink" title="循环嵌套使用原则"></a>循环嵌套使用原则</h3><p>答：外大内小</p>
+<span id="more"></span>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.qin;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ForTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 外大内小</span></span><br><span class="line">        outBigInsideSmall();</span><br><span class="line">        <span class="comment">// 内大外小</span></span><br><span class="line">        insideBigOutSmall();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 外大内小</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">outBigInsideSmall</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 1. 测试外循环比内循环大</span></span><br><span class="line">        Long startTime = System.nanoTime();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10000000</span>; i++) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; <span class="number">100</span>; j++) &#123;</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        Long endTime = System.nanoTime();</span><br><span class="line">        System.out.println(<span class="string">&quot;外大内小耗时： &quot;</span> + (endTime - startTime));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 内大外小</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">insideBigOutSmall</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 1. 测试外循环比内循环小</span></span><br><span class="line">        Long startTime = System.nanoTime();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100</span>; i++) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; <span class="number">10000000</span>; j++) &#123;</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        Long endTime = System.nanoTime();</span><br><span class="line">        System.out.println(<span class="string">&quot;内大外小耗时： &quot;</span>+(endTime-startTime));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>外大内小耗时： 1965000</p>
+<p>内大外小耗时： 9732100</p>
 
       
 
